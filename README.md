@@ -57,7 +57,7 @@ With my amazing team at Microsoft, we're working on a fully deterministic system
 
 We made a decision early on in the project, that determinism is more important than performance. Determinism allows us to provide users with system-level time travel debugging, allowing high quality bug reports with the net effect of eliminating all "no-repro" bugs.
 
-This has already had success in getting 100% reproducibility in old bugs we've seen at Microsoft that show up periodically, but we haven't been able to reproduce well enough to fix!
+We have already used our new deterministic tooling to reliably reproduce obscure race conditions that historically we were unable to reproduce well enough to fix!
 
 But, with Bochs comes a 50-100x performance slowdown. Your Windows boot now takes an hour rather than a minute, and your fuzzer performance dramatically drops. However it's worth it for the determinism. We'd rather have 10 bugs get fixed, than "know" about 15 bugs and only fix a few of them.
 
