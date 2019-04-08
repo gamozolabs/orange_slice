@@ -36,7 +36,7 @@ I haven't quite determined the design of the kernel yet, but it will be multipro
 
 When running an operating system there are many different things going on. Things like cycle counts, interrupts, system times, etc, all vary during execution. On an x86 processor you'd struggle to ever get an external interrupt to come in on the same instruction boundaries, or read the same value from `rdtsc`.
 
-This non-deterinism means that you cannot simply run a previous crashing input through again and observe the same result. Things like ASLR state can be influenced by external interrupts and timers, and things like task switches also are influenced by these. Race conditions are typically extremely hard to get to reproduce, and this project aims at doing that with all the performance benefits of a hypervisor.
+This non-determinism means that you cannot simply run a previous crashing input through again and observe the same result. Things like ASLR state can be influenced by external interrupts and timers, and things like task switches also are influenced by these. Race conditions are typically extremely hard to get to reproduce, and this project aims at doing that with all the performance benefits of a hypervisor.
 
 # What do we consider determinism?
 
