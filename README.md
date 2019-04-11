@@ -26,6 +26,16 @@ This will be a bootloader, kernel, and hypervisor written entirely in Rust (exce
 
 I haven't quite determined the design of the kernel yet, but it will be multiprocessing from day one (support for SMP systems). I have a 256-thread Xeon Phi which I use to stress the scalability and design of the kernel. I already have many different kernel models I've experimented with before for hypervisor development, so hopefully we'll be able to make informed decisions based on past experiences.
 
+# Building
+
+Have `nasm`, `lld-link` (from LLVM), `python` (I use Python 3), and Rust nightly (with `i586-pc-windows-msvc` and `x86_64-pc-windows-msvc` targets installed)
+
+Run `cargo run` in the root directory. Everything should be built :)
+
+# Using
+
+Copy `orange_slice.boot` and `orange_slice.kern` to a TFTPD server folder configured for PXE booting. Also set the PXE boot filename to `orange_slice.boot` in your DHCP server.
+
 ## Previous public hypervisor work
 
 [Hypervisor for fuzzing written in C]
