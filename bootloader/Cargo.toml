@@ -1,0 +1,23 @@
+[package]
+name = "stage1"
+version = "0.1.0"
+authors = ["Brandon Falk <bfalk@gamozolabs.com>"]
+
+[dependencies]
+serial = { path = "../shared/serial" }
+cpu = { path = "../shared/cpu" }
+rangeset = { path = "../shared/rangeset" }
+safecast = { path = "../shared/safecast" }
+bytesafe_derive = { path = "../shared/safecast/bytesafe_derive" }
+mmu = { path = "../shared/mmu" }
+
+[profile.release]
+panic = "abort"
+opt-level = "z"
+lto = true
+debug = true
+
+[profile.dev]
+panic = "abort"
+debug = true
+

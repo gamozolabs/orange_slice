@@ -1,0 +1,6 @@
+[package]
+name = "bootloader_builder"
+version = "0.1.0"
+authors = ["gamozo <bfalk@gamozolabs.com>"]
+
+[dependencies]

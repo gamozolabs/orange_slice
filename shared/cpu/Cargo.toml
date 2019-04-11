@@ -1,0 +1,8 @@
+[package]
+name = "cpu"
+version = "0.1.0"
+authors = ["gamozo <bfalk@gamozolabs.com>"]
+
+[dependencies]
+rangeset = { path = "../rangeset" }
+

@@ -1,0 +1,6 @@
+[build]
+target = "x86_64-pc-windows-msvc"
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "linker=lld-link", "-C", "link-args=/entry:entry /subsystem:native /base:0x133700000000 /nodefaultlib /debug"]
+

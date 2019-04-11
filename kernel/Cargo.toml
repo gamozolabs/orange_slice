@@ -1,0 +1,18 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+authors = ["Brandon Falk <bfalk@gamozolabs.com>"]
+
+[dependencies]
+serial = { path = "../shared/serial" }
+cpu = { path = "../shared/cpu" }
+rangeset = { path = "../shared/rangeset" }
+mmu = { path = "../shared/mmu" }
+
+[profile.release]
+panic = "abort"
+lto = false
+debug = true
+
+[profile.dev]
+panic = "abort"

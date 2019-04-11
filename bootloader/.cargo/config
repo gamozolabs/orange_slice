@@ -1,0 +1,5 @@
+[build]
+target = "i586-pc-windows-msvc"
+
+[target.i586-pc-windows-msvc]
+rustflags = ["-Z", "thinlto=off", "-C", "relocation-model=static", "-C", "linker=lld-link", "-C", "link-args=/entry:entry /subsystem:native /base:0xf000 /fixed /debug /nodefaultlib target/asm_routines.obj"]

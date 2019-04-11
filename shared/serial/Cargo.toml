@@ -1,0 +1,8 @@
+[package]
+name = "serial"
+version = "0.1.0"
+authors = ["gamozo <bfalk@gamozolabs.com>"]
+
+[dependencies]
+cpu = { path = "../cpu" }
+
