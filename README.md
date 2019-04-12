@@ -12,7 +12,6 @@ This deterministic hypervisor is going to be designed from the start for fuzzing
 
 [My Youtube Channel]
 
-
 ## TL;DR
 
 The end goal is a deterministic hypervisor, capable of booting Windows and Linux, with less than a 5x performance slowdown to achieve instruction-and-cycle level determinism for cycle counts and interrupt boundaries.
