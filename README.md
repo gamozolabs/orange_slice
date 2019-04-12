@@ -4,6 +4,10 @@ Orange Slice is a research kernel and hypervisor with an end goal of creating a 
 
 This deterministic hypervisor is going to be designed from the start for fuzzing. Having determinism in a hypervisor would allow us to never have an issue with reproducing a bug, regardless of how complex the bug is. However as a hypervisor we will benefit from the performance of hardware-accelerated virtualization.
 
+## TL;DR
+
+The end goal is a deterministic hypervisor, capable of booting Windows and Linux, with less than a 5x performance slowdown to achieve instruction-and-cycle level determinism for cycle counts and interrupt boundaries.
+
 # About Me
 
 [Twitter]
@@ -12,9 +16,9 @@ This deterministic hypervisor is going to be designed from the start for fuzzing
 
 [My Youtube Channel]
 
-## TL;DR
+# Intro Video to the project
 
-The end goal is a deterministic hypervisor, capable of booting Windows and Linux, with less than a 5x performance slowdown to achieve instruction-and-cycle level determinism for cycle counts and interrupt boundaries.
+[![Youtube Video](https://img.youtube.com/vi/okSUAlx_58Y/0.jpg)](https://www.youtube.com/watch?v=okSUAlx_58Y)
 
 # Mascot
 
@@ -25,8 +29,6 @@ The end goal is a deterministic hypervisor, capable of booting Windows and Linux
 Yup. Check out [My Youtube Channel] or my [Twitter]. I announce my streams typically a few hours ahead of time, and schedule the streams on Youtube. Further for streams I think are more impactful, I try to schedule them a few days out.
 
 I'm going to try to do much of the development live, and I'll try to help answer any questions about why certain things are being done. If this project fails, but I teach some people about OS development and get other excited about security research, then it was a success in my eyes.
-
-I have already scheduled a stream for an intro on Wednesday: [Intro Video]
 
 # Project Development
 
@@ -95,5 +97,4 @@ If this project succeeds, this project will likely be abandoned and a new one wi
 [Twitter]: https://twitter.com/gamozolabs
 [Hypervisor for fuzzing written in C]: https://github.com/gamozolabs/falkervisor_grilled_cheese
 [Hypervisor for fuzzing written in assembly]: https://github.com/gamozolabs/falkervisor_beta
-[Intro Video]: https://youtu.be/okSUAlx_58Y
 [My Blog]: https://gamozolabs.github.io/
