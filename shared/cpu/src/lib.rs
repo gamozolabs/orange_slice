@@ -478,8 +478,7 @@ pub unsafe fn apic_write(offset: isize, val: u32)
     }
 }
 
-pub fn use_x2apic() -> bool
-{
+pub fn use_x2apic() -> bool {
     unsafe {
         (cpuid(1, 0).2 & (1 << 21)) != 0
     }

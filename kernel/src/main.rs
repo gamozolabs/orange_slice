@@ -19,9 +19,11 @@ extern crate mmu;
 
 #[macro_use] extern crate bytesafe_derive;
 
-use alloc::alloc::Layout;
-use alloc::alloc::GlobalAlloc;
 use core::sync::atomic::{AtomicUsize, Ordering};
+
+/// Global allocator
+#[global_allocator]
+static GLOBAL_ALLOCATOR: mm::GlobalAllocator = mm::GlobalAllocator;
 
 macro_rules! print {
     ( $($arg:tt)* ) => ({
@@ -48,24 +50,8 @@ pub mod panic;
 /// Core requirements needed for Rust, such as libc memset() and friends
 pub mod core_reqs;
 
-/// Global allocator
-#[global_allocator]
-pub static mut GLOBAL_ALLOCATOR: GlobalAllocator = GlobalAllocator;
-
-/// Structure representing global allocator
-///
-/// All state is handled elsewhere so this is empty.
-pub struct GlobalAllocator;
-
-unsafe impl GlobalAlloc for GlobalAllocator {
-    unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
-        panic!("ALLOC NOT SUPPORTED");
-    }
-
-    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
-        panic!("Dealloc attempted\n");
-    }
-}
+/// Bring in the memory manager
+pub mod mm;
 
 /// Writer implementation used by the `print!` macro
 pub struct Writer;
@@ -103,6 +89,17 @@ pub extern fn entry(param: u64) -> ! {
     // Attempt to launch the next processor in the list
     unsafe {
         acpi::launch_ap(core_id + 1);
+    }
+
+    use alloc::vec::Vec;
+    
+    for ii in 0..100000 {
+        let mut alc: Vec<u8> = Vec::with_capacity(1024 * 1024);
+        for _ in 0..1024*1024 { alc.push(5); }
+
+        if ii % 1000 == 0 {
+            print!("ii is {}\n", ii);
+        }
     }
 
     let foo = 0;

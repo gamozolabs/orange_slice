@@ -13,8 +13,7 @@ pub struct Range
 
 #[derive(Clone, Copy)]
 #[repr(C, packed)]
-pub struct RangeSet
-{
+pub struct RangeSet {
     /// Fixed array of ranges in the set
     ranges: [Range; 32],
 
