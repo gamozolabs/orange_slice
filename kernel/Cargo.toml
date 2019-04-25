@@ -2,12 +2,15 @@
 name = "kernel"
 version = "0.1.0"
 authors = ["Brandon Falk <bfalk@gamozolabs.com>"]
+edition = "2018"
 
 [dependencies]
 serial = { path = "../shared/serial" }
 cpu = { path = "../shared/cpu" }
 rangeset = { path = "../shared/rangeset" }
 mmu = { path = "../shared/mmu" }
+safecast = { path = "../shared/safecast" }
+bytesafe_derive = { path = "../shared/safecast/bytesafe_derive" }
 
 [profile.release]
 panic = "abort"

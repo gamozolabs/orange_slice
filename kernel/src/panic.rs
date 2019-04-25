@@ -14,7 +14,7 @@ pub fn panic(info: &PanicInfo) -> ! {
 
     if let Some(&args) = info.message() {
         use core::fmt::write;
-        let _ = write(&mut ::Writer, args);
+        let _ = write(&mut crate::Writer, args);
         print!("\n");
     } else {
         print!("No arguments\n");

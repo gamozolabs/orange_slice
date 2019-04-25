@@ -8,19 +8,9 @@ pub const MAX_CPUS: usize = 256;
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct BootloaderStruct {
-    /// If this is the BSP then this is a pointer to a vector containing
-    /// MAX_CPUS u64 values. Each value is a pointer to the corresponding page
-    /// used for communication with other cores.
-    ///
-    /// If this is not the BSP then this value is zero and should not be used.
-    pub core_msg_windows: u64,
-
     /// If this is the BSP then this is a rangeset representing the free
     /// physical memory on the system.
     pub phys_memory: rangeset::RangeSet,
-
-    /// Virtual address for this cores message window
-    pub msg_window: u64,
 
     /// Address to jump to perform a soft reboot
     pub soft_reboot_entry: u64,

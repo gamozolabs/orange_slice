@@ -4,7 +4,6 @@
 #![feature(lang_items)]
 #![feature(core_intrinsics)]
 #![feature(compiler_builtins_lib)]
-#![feature(alloc)]
 #![feature(allocator_api)]
 
 /// Custom non-formatting panic macro.
@@ -101,14 +100,14 @@ impl mmu::PhysMem for Pmem {
 /// CoreInfo structure to pass into the next stage (kernel). This provides
 /// the kernel with critical structures that were constructed in the bootloader
 struct CoreInfo {
-    page_table:         mmu::PageTable<'static, Pmem>,
-    entry:              u64,
-    stack_base:         u64,
-    bootloader_info:    cpu::BootloaderStruct,
+    entry:           u64,
+    stack_base:      u64,
+    bootloader_info: cpu::BootloaderStruct,
 }
 
 static mut CORE_INFO: Option<Vec<CoreInfo>> = None;
 static mut PMEM: Pmem = Pmem {};
+static mut PAGE_TABLE: Option<mmu::PageTable<'static, Pmem>> = None;
 
 #[lang = "oom"]
 #[no_mangle]
@@ -179,35 +178,31 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
             }
         };
 
-        /* Parse the PE file */
+        // Parse the PE file
         let pe_parsed = pe::parse(&kernel_pe);
 
-        /* Allocate room for message window physical addresses */
-        let mut msg_windows = Vec::with_capacity(cpu::MAX_CPUS);
+        // Create a new page table with a 1 TiB identity map
+        let mut page_table = unsafe { mmu::PageTable::new(&mut PMEM) };
+        page_table.add_identity_map(1024 * 1024 * 1024 * 1024).unwrap();
+
+        unsafe {
+            assert!(PAGE_TABLE.is_none(), "Page table already set");
+            PAGE_TABLE = Some(page_table);
+        }
+
+        let page_table = unsafe { PAGE_TABLE.as_mut().unwrap() };
+
+        // Generate a random address to base the kernel at and load the
+        // kernel into the new page table.
+        let kernel_base = page_table.rand_addr(pe_parsed.loaded_size())
+            .unwrap();
+        //let kernel_base = 0x1337_0000_0000;
+        let entry = pe_parsed.load(page_table, kernel_base);
 
         for _ in 0..cpu::MAX_CPUS {
-            /* Create a new page table with a 1 TiB identity map */
-            let mut page_table = unsafe { mmu::PageTable::new(&mut PMEM) };
-            page_table.add_identity_map(1024 * 1024 * 1024 * 1024).unwrap();
-
-            /* Generate a random address to base the kernel at and load the
-             * kernel into the new page table.
-             */
-            let kernel_base = page_table.rand_addr(pe_parsed.loaded_size())
-                .unwrap();
-            //let kernel_base = 0x1337_0000_0000;
-            let entry = pe_parsed.load(&mut page_table, kernel_base);
-
             /* Add a 1 MiB stack with random base address */
             let stack_base = page_table.rand_addr(STACK_SIZE).unwrap();
             page_table.add_memory(stack_base, STACK_SIZE).unwrap();
-
-            /* Add message window to kernel */
-            let msg_window = page_table.rand_addr(4096).unwrap();
-            page_table.add_memory(msg_window, 4096).unwrap();
-            let msg_window_phys = page_table.virt_to_phys(msg_window)
-                .unwrap().unwrap().0;
-            msg_windows.push(msg_window_phys);
 
             /* Construct the core infos to be passed to the kernel */
             unsafe {
@@ -218,43 +213,15 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
 
                 /* Construct the core info for this CPU */
                 ci.push(CoreInfo {
-                    page_table,
                     entry,
                     stack_base,
                     bootloader_info: cpu::BootloaderStruct {
-                        core_msg_windows:  0,
                         phys_memory:       rangeset::RangeSet::new(),
-                        msg_window:        msg_window,
                         soft_reboot_entry: soft_reboot_entry as u64,
-                        kernel_buffer: kbuf as *mut cpu::KernelBuffer as u64,
+                        kernel_buffer: 
+                            kbuf as *mut cpu::KernelBuffer as u64,
                     },
                 });
-            }
-        }
-
-        let mut bsp_msg_windows: Vec<u64> = Vec::with_capacity(cpu::MAX_CPUS);
-
-        /* For only the BSP, populate the `core_msg_windows` structure such
-         * that the BSP has a way to IPC with all cores.
-         */
-        for msg_window in &msg_windows {
-            unsafe {
-                let core_info: &mut CoreInfo =
-                    &mut CORE_INFO.as_mut().unwrap()[core_id];
-
-                /* Map a window into the respective core's message window
-                 * into the BSPs virtual address space
-                 */
-                let vaddr = core_info.page_table.rand_addr(4096).unwrap();
-                core_info.page_table.map_page_raw(
-                    vaddr, msg_window |
-                    mmu::PTBits::ExecuteDisable as u64 |
-                    mmu::PTBits::Writable as u64 |
-                    mmu::PTBits::Present as u64,
-                    mmu::MapSize::Mapping4KiB, false).unwrap();
-                bsp_msg_windows.push(vaddr);
-                core_info.bootloader_info.core_msg_windows =
-                    bsp_msg_windows.as_mut_ptr() as u64;
             }
         }
 
@@ -272,8 +239,6 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
         }
 
         /* Prevent all structures from being freed */
-        core::mem::forget(bsp_msg_windows);
-        core::mem::forget(msg_windows);
         core::mem::forget(pe_parsed);
         core::mem::forget(kernel_pe);
     }
@@ -289,6 +254,6 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
         /* Jump into x86_64 kernel! */
         enter64(core_info.entry, core_info.stack_base + STACK_SIZE,
                 &core_info.bootloader_info as *const _ as u64,
-                core_info.page_table.get_backing() as u32);
+                PAGE_TABLE.as_ref().unwrap().get_backing() as u32);
     }
 }
