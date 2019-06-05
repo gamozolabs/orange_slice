@@ -173,6 +173,30 @@ ap_entry:
 	; Jump to protected mode!
 	jmp 0x0008:ap_pm_entry
 
+times 0x500-($-$$) db 0
+
+[bits 16]
+
+; Addres 0x8100
+vm_entry:
+	mov di, 0xb800
+	mov es, di
+	xor di, di
+	mov cx, 80 * 25
+	xor ax, ax
+	rep stosw
+
+	mov di, 0xb800
+	mov es, di
+	xor di, di
+	mov cx, 80
+	mov ax, 0x0f41
+	rep stosw
+
+	cli
+	hlt
+	jmp vm_entry
+
 [bits 64]
 
 soft_reboot_entry:

@@ -185,6 +185,22 @@ pub unsafe fn write_cr4(val: u64)
     asm!("mov cr4, $0" :: "r"(val) :: "intel", "volatile");
 }
 
+/// Reads the contents of CR0
+#[inline(always)]
+pub unsafe fn read_cr0() -> u64
+{
+    let cr0;
+    asm!("mov $0, cr0" : "=r"(cr0) ::: "intel", "volatile");
+    cr0
+}
+
+/// Writes to CR0
+#[inline(always)]
+pub unsafe fn write_cr0(val: u64)
+{
+    asm!("mov cr0, $0" :: "r"(val) :: "intel", "volatile");
+}
+
 /// Load the interrupt table specified by vaddr
 #[inline(always)]
 pub unsafe fn lidt(vaddr: *const u8)
@@ -342,6 +358,8 @@ pub struct CPUFeatures {
     pub avx: bool,
     pub apic: bool,
 
+    pub vmx: bool,
+
     pub lahf: bool,
     pub lzcnt: bool,
     pub prefetchw: bool,
@@ -386,6 +404,7 @@ pub fn get_cpu_features() -> CPUFeatures
             features.htt  = ((cpuid_1.3 >> 28) & 1) == 1;
 
             features.sse3    = ((cpuid_1.2 >>  0) & 1) == 1;
+            features.vmx     = ((cpuid_1.2 >>  5) & 1) == 1;
             features.ssse3   = ((cpuid_1.2 >>  9) & 1) == 1;
             features.sse4_1  = ((cpuid_1.2 >> 19) & 1) == 1;
             features.sse4_2  = ((cpuid_1.2 >> 20) & 1) == 1;
@@ -480,7 +499,8 @@ pub unsafe fn apic_write(offset: isize, val: u32)
 
 pub fn use_x2apic() -> bool {
     unsafe {
-        (cpuid(1, 0).2 & (1 << 21)) != 0
+        false
+        //(cpuid(1, 0).2 & (1 << 21)) != 0
     }
 }
 
@@ -516,4 +536,68 @@ pub unsafe fn apic_init()
 pub unsafe fn invlpg(addr: usize)
 {
     asm!("invlpg [$0]" :: "r"(addr) : "memory" : "volatile", "intel");
+}
+
+/// Sets the contents of the current VMCS field based on `encoding` and `val`
+#[inline(always)]
+pub unsafe fn vmwrite(encoding: u64, val: u64)
+{
+    asm!("vmwrite $0, $1" :: "r"(encoding), "r"(val) :: "intel", "volatile");
+}
+
+/// Reads the contents of the current VMCS field based on `encoding`
+#[inline(always)]
+pub unsafe fn vmread(encoding: u64) -> u64
+{
+    let ret;
+    asm!("vmread $0, $1" : "=r"(ret) : "r"(encoding) :: "intel", "volatile");
+    ret
+}
+
+/// Gets the ES selector value
+#[inline(always)]
+pub unsafe fn read_es() -> u16 {
+    let ret;
+    asm!("mov $0, es" : "=r"(ret) ::: "intel", "volatile");
+    ret
+}
+
+/// Gets the CS selector value
+#[inline(always)]
+pub unsafe fn read_cs() -> u16 {
+    let ret;
+    asm!("mov $0, cs" : "=r"(ret) ::: "intel", "volatile");
+    ret
+}
+
+/// Gets the SS selector value
+#[inline(always)]
+pub unsafe fn read_ss() -> u16 {
+    let ret;
+    asm!("mov $0, ss" : "=r"(ret) ::: "intel", "volatile");
+    ret
+}
+
+/// Gets the DS selector value
+#[inline(always)]
+pub unsafe fn read_ds() -> u16 {
+    let ret;
+    asm!("mov $0, ds" : "=r"(ret) ::: "intel", "volatile");
+    ret
+}
+
+/// Gets the FS selector value
+#[inline(always)]
+pub unsafe fn read_fs() -> u16 {
+    let ret;
+    asm!("mov $0, fs" : "=r"(ret) ::: "intel", "volatile");
+    ret
+}
+
+/// Gets the GS selector value
+#[inline(always)]
+pub unsafe fn read_gs() -> u16 {
+    let ret;
+    asm!("mov $0, gs" : "=r"(ret) ::: "intel", "volatile");
+    ret
 }

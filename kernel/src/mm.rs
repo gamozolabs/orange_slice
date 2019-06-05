@@ -1,6 +1,7 @@
 use alloc::alloc::{Layout, GlobalAlloc};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use crate::acpi;
+use mmu::PhysMem;
 
 pub struct GlobalAllocator;
 
@@ -10,6 +11,19 @@ pub struct GlobalAllocator;
 pub struct Pmem;
 
 static mut PMEM: Pmem = Pmem;
+
+/// Allocate a new zeroed out page and return it
+pub fn alloc_page() -> Option<&'static mut [u8; 4096]> {
+    unsafe {
+        if let Some(page) = PMEM.alloc_page() {
+            let page = &mut *(page as *mut [u8; 4096]);
+            *page = [0u8; 4096];
+            Some(page)
+        } else {
+            None
+        }
+    }
+}
 
 impl mmu::PhysMem for Pmem {
     /// Allocate a page

@@ -8,7 +8,7 @@ const KERNEL_PATH:   &'static str =
 
 fn main()
 {
-    const DEPLOY_PATHS: &[&str] = &["C:/dev/tftpd", "D:/tftpd", "O:/tftpd", "Y:/tftpd", "Y:/fuzz_server", "/mnt/biggie/tftpd"];
+    const DEPLOY_PATHS: &[&str] = &["C:/dev/tftpd", "D:/tftpd", "O:/tftpd", "Y:/tftpd", "Y:/fuzz_server", "/mnt/biggie/tftpd", "D:/orange_slice/emu"];
 
     let args: Vec<String> = std::env::args().collect();
 

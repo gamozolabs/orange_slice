@@ -196,7 +196,7 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
         // kernel into the new page table.
         let kernel_base = page_table.rand_addr(pe_parsed.loaded_size())
             .unwrap();
-        //let kernel_base = 0x1337_0000_0000;
+        let kernel_base = 0x1337_0000_0000;
         let entry = pe_parsed.load(page_table, kernel_base);
 
         for _ in 0..cpu::MAX_CPUS {
