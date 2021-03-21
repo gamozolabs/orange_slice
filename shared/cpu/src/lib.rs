@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(asm)]
+#![feature(llvm_asm)]
 
 extern crate rangeset;
 
@@ -29,28 +29,28 @@ pub struct KernelBuffer {
 /// Output the byte `val` to `port`
 pub unsafe fn out8(port: u16, val: u8)
 {
-    asm!("out dx, al" :: "{al}"(val), "{dx}"(port) :: "intel", "volatile");
+    llvm_asm!("out dx, al" :: "{al}"(val), "{dx}"(port) :: "intel", "volatile");
 }
 
 /// Input a byte from `port`
 pub unsafe fn in8(port: u16) -> u8
 {
     let ret: u8;
-    asm!("in al, dx" : "={al}"(ret) : "{dx}"(port) :: "intel", "volatile");
+    llvm_asm!("in al, dx" : "={al}"(ret) : "{dx}"(port) :: "intel", "volatile");
     ret
 }
 
 /// Output the dword `val` to `port`
 pub unsafe fn out32(port: u16, val: u32)
 {
-    asm!("out dx, eax" :: "{eax}"(val), "{dx}"(port) :: "intel", "volatile");
+    llvm_asm!("out dx, eax" :: "{eax}"(val), "{dx}"(port) :: "intel", "volatile");
 }
 
 /// Input a dword from `port`
 pub unsafe fn in32(port: u16) -> u32
 {
     let ret: u32;
-    asm!("in eax, dx" : "={eax}"(ret) : "{dx}"(port) :: "intel", "volatile");
+    llvm_asm!("in eax, dx" : "={eax}"(ret) : "{dx}"(port) :: "intel", "volatile");
     ret
 }
 
@@ -59,7 +59,7 @@ pub fn halt() -> !
 {
     loop {
         unsafe {
-            asm!("cli ; hlt" :::: "volatile");
+            llvm_asm!("cli ; hlt" :::: "volatile");
         }
     }
 }
@@ -72,7 +72,7 @@ pub unsafe fn rdmsr(msr: u32) -> u64
 	let high: u32;
 	let low:  u32;
 
-    asm!("rdmsr" :
+    llvm_asm!("rdmsr" :
          "={edx}"(high), "={eax}"(low) : "{ecx}"(msr) :
          "memory" :
          "volatile", "intel");
@@ -84,7 +84,7 @@ pub unsafe fn rdmsr(msr: u32) -> u64
 #[inline(always)]
 pub unsafe fn wrmsr(msr: u32, val: u64)
 {
-	asm!("wrmsr" ::
+	llvm_asm!("wrmsr" ::
 		 "{ecx}"(msr), "{eax}"(val as u32), "{edx}"((val >> 32) as u32) :
 		 "memory" :
          "volatile", "intel");
@@ -95,7 +95,7 @@ pub unsafe fn wrmsr(msr: u32, val: u64)
 pub unsafe fn read_dr7() -> u64
 {
     let dr7;
-    asm!("mov $0, dr7" : "=r"(dr7) ::: "intel", "volatile");
+    llvm_asm!("mov $0, dr7" : "=r"(dr7) ::: "intel", "volatile");
     dr7
 }
 
@@ -105,7 +105,7 @@ pub unsafe fn read_dr7() -> u64
 pub unsafe fn read_cr8() -> u64
 {
     let cr8;
-    asm!("mov $0, cr8" : "=r"(cr8) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cr8" : "=r"(cr8) ::: "intel", "volatile");
     cr8
 }
 
@@ -114,7 +114,7 @@ pub unsafe fn read_cr8() -> u64
 pub unsafe fn read_cr3() -> u64
 {
     let cr3: u64;
-    asm!("mov $0, cr3" : "=r"(cr3) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cr3" : "=r"(cr3) ::: "intel", "volatile");
     cr3 & 0xffff_ffff_ffff_f000
 }
 
@@ -123,7 +123,7 @@ pub unsafe fn read_cr3() -> u64
 pub unsafe fn read_cr2() -> u64
 {
     let cr2;
-    asm!("mov $0, cr2" : "=r"(cr2) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cr2" : "=r"(cr2) ::: "intel", "volatile");
     cr2
 }
 
@@ -131,42 +131,42 @@ pub unsafe fn read_cr2() -> u64
 #[inline(always)]
 pub unsafe fn write_dr0(val: u64)
 {
-    asm!("mov dr0, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov dr0, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Writes to dr1
 #[inline(always)]
 pub unsafe fn write_dr1(val: u64)
 {
-    asm!("mov dr1, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov dr1, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Writes to dr2
 #[inline(always)]
 pub unsafe fn write_dr2(val: u64)
 {
-    asm!("mov dr2, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov dr2, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Writes to dr3
 #[inline(always)]
 pub unsafe fn write_dr3(val: u64)
 {
-    asm!("mov dr3, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov dr3, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Writes to CR2
 #[inline(always)]
 pub unsafe fn write_cr2(val: u64)
 {
-    asm!("mov cr2, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov cr2, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Writes to CR3
 #[inline(always)]
 pub unsafe fn write_cr3(val: u64)
 {
-    asm!("mov cr3, $0" :: "r"(val) : "memory" : "intel", "volatile");
+    llvm_asm!("mov cr3, $0" :: "r"(val) : "memory" : "intel", "volatile");
 }
 
 /// Reads the contents of CR4
@@ -174,7 +174,7 @@ pub unsafe fn write_cr3(val: u64)
 pub unsafe fn read_cr4() -> u64
 {
     let cr4;
-    asm!("mov $0, cr4" : "=r"(cr4) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cr4" : "=r"(cr4) ::: "intel", "volatile");
     cr4
 }
 
@@ -182,7 +182,7 @@ pub unsafe fn read_cr4() -> u64
 #[inline(always)]
 pub unsafe fn write_cr4(val: u64)
 {
-    asm!("mov cr4, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov cr4, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Reads the contents of CR0
@@ -190,7 +190,7 @@ pub unsafe fn write_cr4(val: u64)
 pub unsafe fn read_cr0() -> u64
 {
     let cr0;
-    asm!("mov $0, cr0" : "=r"(cr0) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cr0" : "=r"(cr0) ::: "intel", "volatile");
     cr0
 }
 
@@ -198,14 +198,14 @@ pub unsafe fn read_cr0() -> u64
 #[inline(always)]
 pub unsafe fn write_cr0(val: u64)
 {
-    asm!("mov cr0, $0" :: "r"(val) :: "intel", "volatile");
+    llvm_asm!("mov cr0, $0" :: "r"(val) :: "intel", "volatile");
 }
 
 /// Load the interrupt table specified by vaddr
 #[inline(always)]
 pub unsafe fn lidt(vaddr: *const u8)
 {
-	asm!("lidt [$0]" ::
+	llvm_asm!("lidt [$0]" ::
 		 "r"(vaddr) :
 		 "memory" :
 		 "volatile", "intel");
@@ -215,7 +215,7 @@ pub unsafe fn lidt(vaddr: *const u8)
 #[inline(always)]
 pub unsafe fn lgdt(vaddr: *const u8)
 {
-	asm!("lgdt [$0]" ::
+	llvm_asm!("lgdt [$0]" ::
 		 "r"(vaddr) :
 		 "memory" :
 		 "volatile", "intel");
@@ -225,14 +225,14 @@ pub unsafe fn lgdt(vaddr: *const u8)
 #[inline(always)]
 pub unsafe fn ltr(tss_seg: u16)
 {
-	asm!("ltr cx" :: "{cx}"(tss_seg) :: "volatile", "intel");
+	llvm_asm!("ltr cx" :: "{cx}"(tss_seg) :: "volatile", "intel");
 }
 
 /// Write back all memory and invalidate caches
 #[inline(always)]
 pub fn wbinvd() {
     unsafe {
-    	asm!("wbinvd" ::: "memory" : "volatile", "intel");
+    	llvm_asm!("wbinvd" ::: "memory" : "volatile", "intel");
     }
 }
 
@@ -240,14 +240,14 @@ pub fn wbinvd() {
 #[inline(always)]
 pub fn mfence() {
     unsafe {
-    	asm!("mfence" ::: "memory" : "volatile", "intel");
+    	llvm_asm!("mfence" ::: "memory" : "volatile", "intel");
     }
 }
 
 /// Flushes cache line associted with the byte pointed to by `ptr`
 #[inline(always)]
 pub unsafe fn clflush(ptr: *const u8) {
-    asm!("clflush [$0]" :: "r"(ptr as usize) : "memory" : "volatile", "intel");
+    llvm_asm!("clflush [$0]" :: "r"(ptr as usize) : "memory" : "volatile", "intel");
 }
 
 /// Instruction fence (via write cr2) which serializes execution
@@ -263,7 +263,7 @@ pub fn ifence() {
 pub fn rdrand() -> u64 {
     let val: u64;
     unsafe {
-    	asm!("rdrand $0" : "=r"(val) ::: "volatile", "intel");
+    	llvm_asm!("rdrand $0" : "=r"(val) ::: "volatile", "intel");
     }
     val
 }
@@ -276,7 +276,7 @@ pub fn rdtsc() -> u64
 	let low:  u32;
 
     unsafe {
-        asm!("rdtsc" :
+        llvm_asm!("rdtsc" :
              "={edx}"(high), "={eax}"(low) :::
              "volatile", "intel");
     }
@@ -292,7 +292,7 @@ pub fn rdtscp() -> u64
 	let low:  u32;
 
     unsafe {
-        asm!("rdtscp" :
+        llvm_asm!("rdtscp" :
              "={edx}"(high), "={eax}"(low) :: "ecx" :
              "volatile", "intel");
     }
@@ -307,7 +307,7 @@ pub unsafe fn cpuid(eax: u32, ecx: u32) -> (u32, u32, u32, u32)
 {
     let (oeax, oebx, oecx, oedx);
 
-    asm!("cpuid" :
+    llvm_asm!("cpuid" :
          "={eax}"(oeax), "={ebx}"(oebx), "={ecx}"(oecx), "={edx}"(oedx) :
          "{eax}"(eax), "{ecx}"(ecx) :: "volatile", "intel");
 
@@ -325,14 +325,14 @@ pub fn is_bsp() -> bool
 #[inline(always)]
 pub unsafe fn interrupts_enable()
 {
-	asm!("sti" :::: "volatile");
+	llvm_asm!("sti" :::: "volatile");
 }
 
 /// Disable interrupts and then increment the interrupt level.
 #[inline(always)]
 pub unsafe fn interrupts_disable()
 {
-	asm!("cli" :::: "volatile");
+	llvm_asm!("cli" :::: "volatile");
 }
 
 #[derive(Default, Debug)]
@@ -376,7 +376,7 @@ pub struct CPUFeatures {
 /// Set the xcr0 register to a given value
 pub unsafe fn write_xcr0(val: u64)
 {
-    asm!("xsetbv" :: "{ecx}"(0), "{eax}"(val as u32),
+    llvm_asm!("xsetbv" :: "{ecx}"(0), "{eax}"(val as u32),
         "{edx}"((val >> 32) as u32) :: "intel", "volatile");
 }
 
@@ -498,10 +498,10 @@ pub unsafe fn apic_write(offset: isize, val: u32)
 }
 
 pub fn use_x2apic() -> bool {
-    unsafe {
-        false
-        //(cpuid(1, 0).2 & (1 << 21)) != 0
-    }
+    false
+    // unsafe {
+    //     (cpuid(1, 0).2 & (1 << 21)) != 0
+    // }
 }
 
 /// Get current cores APIC ID
@@ -535,14 +535,14 @@ pub unsafe fn apic_init()
 #[inline(always)]
 pub unsafe fn invlpg(addr: usize)
 {
-    asm!("invlpg [$0]" :: "r"(addr) : "memory" : "volatile", "intel");
+    llvm_asm!("invlpg [$0]" :: "r"(addr) : "memory" : "volatile", "intel");
 }
 
 /// Sets the contents of the current VMCS field based on `encoding` and `val`
 #[inline(always)]
 pub unsafe fn vmwrite(encoding: u64, val: u64)
 {
-    asm!("vmwrite $0, $1" :: "r"(encoding), "r"(val) :: "intel", "volatile");
+    llvm_asm!("vmwrite $0, $1" :: "r"(encoding), "r"(val) :: "intel", "volatile");
 }
 
 /// Reads the contents of the current VMCS field based on `encoding`
@@ -550,7 +550,7 @@ pub unsafe fn vmwrite(encoding: u64, val: u64)
 pub unsafe fn vmread(encoding: u64) -> u64
 {
     let ret;
-    asm!("vmread $0, $1" : "=r"(ret) : "r"(encoding) :: "intel", "volatile");
+    llvm_asm!("vmread $0, $1" : "=r"(ret) : "r"(encoding) :: "intel", "volatile");
     ret
 }
 
@@ -558,7 +558,7 @@ pub unsafe fn vmread(encoding: u64) -> u64
 #[inline(always)]
 pub unsafe fn read_es() -> u16 {
     let ret;
-    asm!("mov $0, es" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, es" : "=r"(ret) ::: "intel", "volatile");
     ret
 }
 
@@ -566,7 +566,7 @@ pub unsafe fn read_es() -> u16 {
 #[inline(always)]
 pub unsafe fn read_cs() -> u16 {
     let ret;
-    asm!("mov $0, cs" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, cs" : "=r"(ret) ::: "intel", "volatile");
     ret
 }
 
@@ -574,7 +574,7 @@ pub unsafe fn read_cs() -> u16 {
 #[inline(always)]
 pub unsafe fn read_ss() -> u16 {
     let ret;
-    asm!("mov $0, ss" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, ss" : "=r"(ret) ::: "intel", "volatile");
     ret
 }
 
@@ -582,7 +582,7 @@ pub unsafe fn read_ss() -> u16 {
 #[inline(always)]
 pub unsafe fn read_ds() -> u16 {
     let ret;
-    asm!("mov $0, ds" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, ds" : "=r"(ret) ::: "intel", "volatile");
     ret
 }
 
@@ -590,7 +590,7 @@ pub unsafe fn read_ds() -> u16 {
 #[inline(always)]
 pub unsafe fn read_fs() -> u16 {
     let ret;
-    asm!("mov $0, fs" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, fs" : "=r"(ret) ::: "intel", "volatile");
     ret
 }
 
@@ -598,6 +598,6 @@ pub unsafe fn read_fs() -> u16 {
 #[inline(always)]
 pub unsafe fn read_gs() -> u16 {
     let ret;
-    asm!("mov $0, gs" : "=r"(ret) ::: "intel", "volatile");
+    llvm_asm!("mov $0, gs" : "=r"(ret) ::: "intel", "volatile");
     ret
 }

@@ -3,8 +3,9 @@
 #![feature(const_fn)]
 #![feature(lang_items)]
 #![feature(core_intrinsics)]
-#![feature(compiler_builtins_lib)]
 #![feature(allocator_api)]
+#![feature(llvm_asm)]
+#![feature(rustc_private)]
 
 /// Custom non-formatting panic macro.
 ///
@@ -111,7 +112,7 @@ static mut PAGE_TABLE: Option<mmu::PageTable<'static, Pmem>> = None;
 
 #[lang = "oom"]
 #[no_mangle]
-pub extern fn rust_oom(_layout: Layout) -> ! {
+pub fn rust_oom(_layout: Layout) -> ! {
     panic!("Out of memory");
 }
 
@@ -194,8 +195,8 @@ pub extern fn entry(soft_reboot_entry: u32, first_boot: bool,
 
         // Generate a random address to base the kernel at and load the
         // kernel into the new page table.
-        let kernel_base = page_table.rand_addr(pe_parsed.loaded_size())
-            .unwrap();
+        // let kernel_base = page_table.rand_addr(pe_parsed.loaded_size())
+        //     .unwrap();
         let kernel_base = 0x1337_0000_0000;
         let entry = pe_parsed.load(page_table, kernel_base);
 

@@ -355,9 +355,11 @@ pub trait SafeCast: ByteSafe {
         <Self>::bytesafe();
 
         /* Uninitialized is safe here as we will fill in all of the bytes */
-        let mut ret: T = unsafe { core::mem::uninitialized() };
-        self.cast_copy_into(&mut ret);
-        ret
+        let mut ret = core::mem::MaybeUninit::<T>::uninit();
+        unsafe {
+            self.cast_copy_into(&mut *ret.as_mut_ptr());
+            ret.assume_init()
+        }
     }
 
     /// Cast `Self` into a slice of `T` spanning the size of `Self`
