@@ -3,9 +3,8 @@
 #![feature(const_fn)]
 #![feature(lang_items)]
 #![feature(core_intrinsics)]
-#![feature(compiler_builtins_lib)]
 #![feature(allocator_api)]
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![allow(dead_code)]
 #![feature(global_asm)]
 #![feature(panic_info_message)]
@@ -25,6 +24,11 @@ use core::convert::TryInto;
 /// Global allocator
 #[global_allocator]
 static GLOBAL_ALLOCATOR: mm::GlobalAllocator = mm::GlobalAllocator;
+
+/// Whether or not floats are used. This is used by the MSVC calling convention
+/// and it just has to exist.
+#[export_name="_fltused"]
+pub static FLTUSED: usize = 0;
 
 macro_rules! print {
     ( $($arg:tt)* ) => ({
@@ -66,7 +70,7 @@ impl core::fmt::Write for Writer {
 
 #[lang = "oom"]
 #[no_mangle]
-pub extern fn rust_oom(_layout: alloc::alloc::Layout) -> ! {
+pub fn rust_oom(_layout: alloc::alloc::Layout) -> ! {
     panic!("Out of memory");
 }
 
@@ -178,7 +182,7 @@ pub extern fn entry(param: u64) -> ! {
         vmxon_region[..4].copy_from_slice(&vmcs_revision_number.to_le_bytes());
 
         // Execute VMXON to enable VMX root operation
-        asm!("vmxon [$0]" :: "r"(vmxon_ptr_page.as_mut_ptr()) :
+        llvm_asm!("vmxon [$0]" :: "r"(vmxon_ptr_page.as_mut_ptr()) :
             "memory", "cc" : "volatile", "intel");
 
         // Now we're in VMX root operation
@@ -197,7 +201,7 @@ pub extern fn entry(param: u64) -> ! {
             &(vmcs_region.as_mut_ptr() as usize).to_le_bytes());
 
         // Activate this given VMCS
-        asm!("vmptrld [$0]" :: "r"(vmcs_ptr_page.as_mut_ptr()) :
+        llvm_asm!("vmptrld [$0]" :: "r"(vmcs_ptr_page.as_mut_ptr()) :
             "memory", "cc" : "volatile", "intel");
 
         const VM_INSTRUCTION_ERROR: u64 = 0x00004400;
@@ -434,7 +438,7 @@ pub extern fn entry(param: u64) -> ! {
         print!("About to launch VM!\n");
 
         // Launch the VM
-        asm!(r#"
+        llvm_asm!(r#"
             // Save HOST_RSP
             mov rax, 0x6c14
             vmwrite rax, rsp
